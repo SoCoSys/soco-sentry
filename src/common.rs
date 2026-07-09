@@ -2031,7 +2031,15 @@ pub fn create_symmetric_key_msg(their_pk_b: [u8; 32]) -> (Bytes, Bytes, secretbo
 
 #[inline]
 pub fn using_public_server() -> bool {
-    crate::get_custom_rendezvous_server(get_option("custom-rendezvous-server")).is_empty()
+    // SoCo Sentry always uses its own baked-in rendezvous server (see
+    // libs/hbb_common/src/config.rs RENDEZVOUS_SERVERS) rather than RustDesk's
+    // public server, and never sets the "custom-rendezvous-server" option that
+    // this check used to look at -- so the stock logic always incorrectly
+    // returned true for this fork (hiding self-host-relevant settings like
+    // "Allow insecure TLS fallback"/"Disable UDP", and showing the "for faster
+    // connection, set up your own server" hint even though we already have).
+    // This is a single-purpose self-hosted build: never the public server.
+    false
 }
 
 pub struct ThrottledInterval {
