@@ -1011,7 +1011,13 @@ pub fn is_rustdesk() -> bool {
 
 #[inline]
 pub fn get_uri_prefix() -> String {
-    format!("{}://", get_app_name().to_lowercase())
+    // SoCo Sentry: a dedicated scheme, decoupled from APP_NAME. The derived
+    // value ("socosys_sentry") contains an underscore, which RFC 3986 forbids
+    // in URI schemes, so browsers refuse to launch such links. Must match the
+    // Windows registry registration (platform/windows.rs), macOS Info.plist
+    // CFBundleURLSchemes, the Android manifest scheme, and the portal's
+    // SENTRY_URI_SCHEME (socosystems-portal src/config.php).
+    "sentry://".to_owned()
 }
 
 #[cfg(target_os = "macos")]
