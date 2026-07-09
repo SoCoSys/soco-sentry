@@ -1080,7 +1080,12 @@ fn get_api_server_(api: String, custom: String) -> String {
             return format!("http://{}", s);
         }
     }
-    "https://admin.rustdesk.com".to_owned()
+    // SoCo Sentry (Phase 9): report heartbeat/sysinfo to the SoCo portal so the
+    // Hub device console gets live online status. Mirrors the Phase 2 approach of
+    // hardcoding RENDEZVOUS_SERVERS: no option/env can silently ship empty.
+    // The portal implements /api/heartbeat + /api/sysinfo (see socosystems-portal
+    // src/devices_api.php). Was: "https://admin.rustdesk.com".
+    "https://portal.socosystems.net".to_owned()
 }
 
 #[inline]
