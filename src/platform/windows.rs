@@ -1831,7 +1831,6 @@ fn get_uninstall(kill_self: bool, uninstall_printer: bool) -> String {
     ",
         before_uninstall=get_before_uninstall(kill_self),
         uninstall_amyuni_idd=get_uninstall_amyuni_idd(),
-        app_name = crate::get_app_name(),
         shortcut_name = crate::get_app_name().replace('_', " "),
     )
 }
