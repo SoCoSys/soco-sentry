@@ -2448,7 +2448,7 @@ class _AboutState extends State<_About> {
                         .marginSymmetric(vertical: 4.0)),
               InkWell(
                   onTap: () {
-                    launchUrlString('https://sentry.socosystems.net/privacy');
+                    launchUrlString('https://sentry.socosystems.net/privacy.php');
                   },
                   child: Text(
                     translate('Privacy Statement'),

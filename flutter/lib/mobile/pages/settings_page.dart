@@ -985,7 +985,7 @@ class _SettingsState extends State<SettingsPage> with WidgetsBindingObserver {
             SettingsTile(
               title: Text(translate("Privacy Statement")),
               onPressed: (context) =>
-                  launchUrlString('https://sentry.socosystems.net/privacy'),
+                  launchUrlString('https://sentry.socosystems.net/privacy.php'),
               leading: Icon(Icons.privacy_tip),
             )
           ],
