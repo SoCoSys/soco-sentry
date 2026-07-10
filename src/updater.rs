@@ -119,10 +119,9 @@ fn start_auto_update_check_(rx_msg: Receiver<UpdateMsg>) {
 
 fn check_update(manually: bool) -> ResultType<()> {
     #[cfg(target_os = "windows")]
-    let update_msi = crate::platform::is_msi_installed()? && !crate::is_custom_client();
-    if !(manually || config::Config::get_bool_option(config::keys::OPTION_ALLOW_AUTO_UPDATE)) {
-        return Ok(());
-    }
+    let update_msi = crate::platform::is_msi_installed()?;
+    // SoCo Sentry: always refresh the update banner (notify-only) even when
+    // silent auto-update is off; the auto-install is what we gate below.
     if do_check_software_update().is_err() {
         // ignore
         return Ok(());
@@ -131,6 +130,8 @@ fn check_update(manually: bool) -> ResultType<()> {
     let update_url = crate::common::SOFTWARE_UPDATE_URL.lock().unwrap().clone();
     if update_url.is_empty() {
         log::debug!("No update available.");
+    } else if !(manually || config::Config::get_bool_option(config::keys::OPTION_ALLOW_AUTO_UPDATE)) {
+        log::debug!("Update available; auto-install off, notifying only.");
     } else {
         let download_url = update_url.replace("tag", "download");
         let version = download_url.split('/').last().unwrap_or_default();
@@ -143,7 +144,7 @@ fn check_update(manually: bool) -> ResultType<()> {
                 );
             };
             format!(
-                "{}/rustdesk-{}-{}.{}",
+                "{}/soco-sentry-{}-{}.{}",
                 download_url,
                 version,
                 arch,

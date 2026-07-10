@@ -118,6 +118,24 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Derive version from tag (SoCo Sentry)
+        # "Tag drives everything": the git tag (e.g. 1.4.9-1) becomes env.VERSION
+        # (used for the asset filenames) AND is written into Cargo.toml so the
+        # built binary self-reports the same version via crate::VERSION — that's
+        # what the daily update check compares against, so a freshly updated
+        # client stops nagging. Non-tag runs (manual dispatch) keep env.VERSION.
+        shell: bash
+        run: |
+          TAG="${{ inputs.upload-tag }}"
+          V="${TAG#v}"
+          if [[ "$V" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            echo "VERSION=$V" >> "$GITHUB_ENV"
+            sed -i "0,/^version = .*/s//version = \"$V\"/" Cargo.toml
+            echo "SoCo Sentry build version: $V"
+          else
+            echo "Non-version tag ($TAG); keeping default VERSION=${{ env.VERSION }}"
+          fi
+
       - name: Restore bridge files
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:

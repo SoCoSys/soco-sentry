@@ -2861,12 +2861,12 @@ pub fn main_get_common(key: String) -> String {
                 crate::common::is_custom_client(),
             ) {
                 (Ok(true), false) => match crate::platform::windows::release_arch_suffix() {
-                    Some(arch) => format!("rustdesk-{_version}-{arch}.msi"),
+                    Some(arch) => format!("soco-sentry-{_version}-{arch}.msi"),
                     None => "error:unsupported".to_owned(),
                 },
                 (Ok(true), true) | (Ok(false), _) => {
                     match crate::platform::windows::release_arch_suffix() {
-                        Some(arch) => format!("rustdesk-{_version}-{arch}.exe"),
+                        Some(arch) => format!("soco-sentry-{_version}-{arch}.exe"),
                         None => "error:unsupported".to_owned(),
                     }
                 }

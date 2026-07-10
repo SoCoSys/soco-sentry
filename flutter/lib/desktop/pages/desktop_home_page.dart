@@ -430,14 +430,13 @@ class _DesktopHomePageState extends State<DesktopHomePage>
   }
 
   Widget buildHelpCards(String updateUrl) {
-    if (!bind.isCustomClient() &&
-        updateUrl.isNotEmpty &&
-        !isCardClosed &&
-        bind.mainUriPrefixSync().contains('rustdesk')) {
+    // SoCo Sentry: show the update card for our (custom) client too; upstream
+    // gated this on !isCustomClient and a "rustdesk" uri prefix.
+    if (updateUrl.isNotEmpty && !isCardClosed) {
       final isToUpdate = (isWindows || isMacOS) && bind.mainIsInstalled();
       String btnText = isToUpdate ? 'Update' : 'Download';
       GestureTapCallback onPressed = () async {
-        final Uri url = Uri.parse('https://rustdesk.com/download');
+        final Uri url = Uri.parse('https://sentry.socosystems.net');
         await launchUrl(url);
       };
       if (isToUpdate) {
@@ -453,7 +452,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
           closeButton: true,
           help: isToUpdate ? 'Changelog' : null,
           link: isToUpdate
-              ? 'https://github.com/rustdesk/rustdesk/releases/tag/${bind.mainGetNewVersion()}'
+              ? 'https://github.com/SoCoSys/soco-sentry/releases/tag/${bind.mainGetNewVersion()}'
               : null);
     }
     if (systemError.isNotEmpty) {
