@@ -65,10 +65,13 @@ fn make_tray() -> hbb_common::ResultType<()> {
         None
     };
     let open_i = MenuItem::new(translate("Open".to_owned()), true, None);
+    // SoCo Sentry: manual "Check for update" — triggers the same check as the
+    // daily background poll, then opens the window so the result banner shows.
+    let update_i = MenuItem::new(translate("Check for update".to_owned()), true, None);
     if let Some(quit_i) = &quit_i {
-        tray_menu.append_items(&[&open_i, quit_i]).ok();
+        tray_menu.append_items(&[&open_i, &update_i, quit_i]).ok();
     } else {
-        tray_menu.append_items(&[&open_i]).ok();
+        tray_menu.append_items(&[&open_i, &update_i]).ok();
     }
     let tooltip = |count: usize| {
         if count == 0 {
@@ -177,7 +180,10 @@ fn make_tray() -> hbb_common::ResultType<()> {
         }
 
         if let Ok(event) = menu_channel.try_recv() {
-            if let Some(quit_i) = &quit_i {
+            if event.id == update_i.id() {
+                let _ = crate::updater::manually_check_update();
+                open_func();
+            } else if let Some(quit_i) = &quit_i {
                 if event.id == quit_i.id() {
                     /* failed in windows, seems no permission to check system process
                     if !crate::check_process("--server", false) {
