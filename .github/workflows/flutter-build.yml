@@ -131,6 +131,10 @@ jobs:
           if [[ "$V" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
             echo "VERSION=$V" >> "$GITHUB_ENV"
             sed -i "0,/^version = .*/s//version = \"$V\"/" Cargo.toml
+            # Keep Cargo.lock's own rustdesk entry in sync, or `cargo build
+            # --locked` fails ("lock file needs to be updated"). Bumps only the
+            # version line immediately after name = "rustdesk".
+            sed -i '/^name = "rustdesk"$/{n;s/^version = ".*"/version = "'"$V"'"/;}' Cargo.lock
             echo "SoCo Sentry build version: $V"
           else
             echo "Non-version tag ($TAG); keeping default VERSION=${{ env.VERSION }}"
