@@ -373,7 +373,11 @@ jobs:
         if: env.UPLOAD_ARTIFACT == 'true'
         run: |
           pushd ./res/msi
-          python preprocess.py --arp -d ../../rustdesk
+          # Pass --version so the MSI packager sanitizes our tag-style version
+          # (e.g. 1.4.9-2 -> 1.4.9.2); reading it from the binary keeps the dash,
+          # which WiX rejects as an invalid ProductVersion. env.VERSION is the
+          # bare tag on tag builds, else the workflow default.
+          python preprocess.py --arp --version "${{ env.VERSION }}" -d ../../rustdesk
           nuget restore msi.sln
           $msiPlatform = if ('${{ matrix.job.arch }}' -eq 'aarch64') { 'ARM64' } else { 'x64' }
           msbuild msi.sln -p:Configuration=Release -p:Platform=$msiPlatform /p:TargetVersion=Windows10
