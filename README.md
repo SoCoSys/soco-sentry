@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="res/logo-header.svg" alt="SoCo Systems Sentry" width="220"><br>
+  <img src="res/icon.png" alt="SoCo Systems Sentry" width="112"><br><br>
   <b>Secure remote support by Southern Colorado Systems, LLC</b>
 </p>
 
