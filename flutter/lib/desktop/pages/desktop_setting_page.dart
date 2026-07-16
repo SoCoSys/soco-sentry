@@ -12,6 +12,7 @@ import 'package:flutter_hbb/consts.dart';
 import 'package:flutter_hbb/desktop/pages/desktop_home_page.dart';
 import 'package:flutter_hbb/desktop/pages/desktop_tab_page.dart';
 import 'package:flutter_hbb/desktop/widgets/remote_toolbar.dart';
+import 'package:flutter_hbb/desktop/widgets/update_progress.dart';
 import 'package:flutter_hbb/mobile/widgets/dialog.dart';
 import 'package:flutter_hbb/models/platform_model.dart';
 import 'package:flutter_hbb/models/printer_model.dart';
@@ -2462,6 +2463,33 @@ class _AboutState extends State<_About> {
                     translate('Website'),
                     style: linkStyle,
                   ).marginSymmetric(vertical: 4.0)),
+              // SoCo Sentry: manual update check + notify. Shows "Update
+              // available -> Update now" when newer; otherwise a check link that
+              // reports the latest-version status.
+              Obx(() {
+                final u = stateGlobal.updateUrl.value;
+                if (u.isNotEmpty) {
+                  return Row(children: [
+                    Text(
+                        '${translate('Update available')}: ${bind.mainGetNewVersion()}',
+                        style: const TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(width: 12),
+                    dialogButton(translate('Update now'),
+                        onPressed: () => promptThenUpdate(u)),
+                  ]).marginSymmetric(vertical: 6.0);
+                }
+                return InkWell(
+                    onTap: () async {
+                      bind.mainGetSoftwareUpdateUrl();
+                      showToast(translate('Checking for updates...'));
+                      await Future.delayed(const Duration(seconds: 3));
+                      if (stateGlobal.updateUrl.value.isEmpty) {
+                        showToast(translate('You have the latest version.'));
+                      }
+                    },
+                    child: Text(translate('Check for update'), style: linkStyle)
+                        .marginSymmetric(vertical: 4.0));
+              }),
               Container(
                 decoration: const BoxDecoration(color: Color(0xFF2E6B45)),
                 padding:

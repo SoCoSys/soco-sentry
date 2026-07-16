@@ -120,7 +120,7 @@ fn start_auto_update_check_(rx_msg: Receiver<UpdateMsg>) {
     }
 }
 
-fn check_update(manually: bool) -> ResultType<()> {
+fn check_update(_manually: bool) -> ResultType<()> {
     #[cfg(target_os = "windows")]
     let update_msi = crate::platform::is_msi_installed()?;
     // SoCo Sentry: always refresh the update banner (notify-only) even when
@@ -133,7 +133,10 @@ fn check_update(manually: bool) -> ResultType<()> {
     let update_url = crate::common::SOFTWARE_UPDATE_URL.lock().unwrap().clone();
     if update_url.is_empty() {
         log::debug!("No update available.");
-    } else if !(manually || config::Config::get_bool_option(config::keys::OPTION_ALLOW_AUTO_UPDATE)) {
+    // SoCo Sentry: a manual check only NOTIFIES (surfaces the update card /
+    // confirm dialog); it never silently installs. Silent install happens only
+    // if the user has explicitly opted into auto-update.
+    } else if !config::Config::get_bool_option(config::keys::OPTION_ALLOW_AUTO_UPDATE) {
         log::debug!("Update available; auto-install off, notifying only.");
     } else {
         let download_url = update_url.replace("tag", "download");

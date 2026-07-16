@@ -441,7 +441,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
       };
       if (isToUpdate) {
         onPressed = () {
-          handleUpdate(updateUrl);
+          promptThenUpdate(updateUrl); // SoCo Sentry: confirm before installing
         };
       }
       return buildInstallCard(

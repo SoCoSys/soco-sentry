@@ -956,22 +956,26 @@ pub async fn do_check_software_update() -> hbb_common::ResultType<()> {
     let v: Value = serde_json::from_slice(&bytes)?;
     let latest = v.get("version").and_then(|x| x.as_str()).unwrap_or_default().to_string();
     let response_url = v.get("url").and_then(|x| x.as_str()).unwrap_or_default().to_string();
-    if !latest.is_empty()
+    // SoCo Sentry: decide the URL, then ALWAYS push the result to Flutter
+    // (empty string when up to date) so a manual "Check for update" can report
+    // "you have the latest version" instead of silently doing nothing.
+    let update_url = if !latest.is_empty()
         && !response_url.is_empty()
         && get_version_number(&latest) > get_version_number(crate::VERSION)
     {
-        #[cfg(feature = "flutter")]
-        {
-            let mut m = HashMap::new();
-            m.insert("name", "check_software_update_finish");
-            m.insert("url", &response_url);
-            if let Ok(data) = serde_json::to_string(&m) {
-                let _ = crate::flutter::push_global_event(crate::flutter::APP_TYPE_MAIN, data);
-            }
-        }
-        *SOFTWARE_UPDATE_URL.lock().unwrap() = response_url;
+        response_url
     } else {
-        *SOFTWARE_UPDATE_URL.lock().unwrap() = "".to_string();
+        String::new()
+    };
+    *SOFTWARE_UPDATE_URL.lock().unwrap() = update_url.clone();
+    #[cfg(feature = "flutter")]
+    {
+        let mut m = HashMap::new();
+        m.insert("name", "check_software_update_finish");
+        m.insert("url", &update_url);
+        if let Ok(data) = serde_json::to_string(&m) {
+            let _ = crate::flutter::push_global_event(crate::flutter::APP_TYPE_MAIN, data);
+        }
     }
     Ok(())
 }

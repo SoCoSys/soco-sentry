@@ -9,6 +9,26 @@ import 'package:url_launcher/url_launcher.dart';
 
 final _isExtracting = false.obs;
 
+// SoCo Sentry: confirm before downloading/installing. Shows "a new version is
+// available — update now?" so a check never silently starts installing.
+void promptThenUpdate(String releasePageUrl) {
+  gFFI.dialogManager.dismissAll();
+  gFFI.dialogManager.show((setState, close, context) {
+    return CustomAlertDialog(
+      title: Text(translate('Update')),
+      content: Text(
+          '${translate("new-version-of-{${bind.mainGetAppNameSync()}}-tip")} (${bind.mainGetNewVersion()}).'),
+      actions: [
+        dialogButton(translate('Later'), onPressed: close, isOutline: true),
+        dialogButton(translate('Update now'), onPressed: () {
+          close();
+          handleUpdate(releasePageUrl);
+        }),
+      ],
+    );
+  });
+}
+
 void handleUpdate(String releasePageUrl) {
   _isExtracting.value = false;
   String downloadUrl = releasePageUrl.replaceAll('tag', 'download');

@@ -52,6 +52,20 @@ class _DesktopTabPageState extends State<DesktopTabPage> {
         page: DesktopHomePage(
           key: const ValueKey(kTabLabelHomePage),
         )));
+    // SoCo Sentry: Settings is a permanent, non-closable tab so Home + Settings
+    // are always visible from first launch (upstream only shows it after you
+    // open it). Re-select Home so the app still opens on the Home tab.
+    tabController.add(TabInfo(
+        key: kTabLabelSettingPage,
+        label: kTabLabelSettingPage,
+        selectedIcon: Icons.build_sharp,
+        unselectedIcon: Icons.build_outlined,
+        closable: false,
+        page: DesktopSettingPage(
+          key: const ValueKey(kTabLabelSettingPage),
+          initialTabkey: SettingsTabKey.general,
+        )));
+    tabController.jumpTo(0, callOnSelected: false);
     if (bind.isIncomingOnly()) {
       tabController.onSelected = (key) {
         if (key == kTabLabelHomePage) {
