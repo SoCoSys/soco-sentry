@@ -2965,17 +2965,26 @@ pub fn main_set_common(_key: String, _value: String) {
                     new_version_file.to_str()
                 );
                 if let Some(f) = new_version_file.to_str() {
-                    // 1.4.0 does not support "--update"
-                    // But we can assume that the new version supports it.
-
-                    #[cfg(any(target_os = "windows", target_os = "macos"))]
-                    match crate::platform::update_to(f) {
-                        Ok(_) => {
-                            log::info!("Update process is launched successfully!");
-                        }
-                        Err(e) => {
-                            log::error!("Failed to update to new version, {}", e);
-                            fs::remove_file(f).ok();
+                    // SoCo Sentry: only run an update signed by our certificate.
+                    #[cfg(target_os = "windows")]
+                    let soco_ok = crate::platform::windows::verify_soco_update_signature(f);
+                    #[cfg(not(target_os = "windows"))]
+                    let soco_ok = true;
+                    if !soco_ok {
+                        log::error!("SoCo update signature verification failed; refusing to run {}", f);
+                        fs::remove_file(f).ok();
+                    } else {
+                        // 1.4.0 does not support "--update"
+                        // But we can assume that the new version supports it.
+                        #[cfg(any(target_os = "windows", target_os = "macos"))]
+                        match crate::platform::update_to(f) {
+                            Ok(_) => {
+                                log::info!("Update process is launched successfully!");
+                            }
+                            Err(e) => {
+                                log::error!("Failed to update to new version, {}", e);
+                                fs::remove_file(f).ok();
+                            }
                         }
                     }
                 }

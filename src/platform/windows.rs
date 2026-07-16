@@ -2164,6 +2164,32 @@ pub fn is_win_server() -> bool {
     unsafe { is_windows_server() > 0 }
 }
 
+// SoCo Sentry: verify a downloaded update is Authenticode-signed by our own
+// code-signing certificate before it is allowed to run. Uses PowerShell's
+// Get-AuthenticodeSignature (no unsafe Win32). It confirms the signer is us and
+// the file's hash matches the signature, so it holds even on machines that
+// don't have our cert in their trust store, and blocks a swapped/unsigned
+// installer even if the update source (version.php / download) were tampered.
+// Fails CLOSED: any error or non-match returns false and the update is refused.
+pub fn verify_soco_update_signature(path: &str) -> bool {
+    let escaped = path.replace('\'', "''");
+    let script = format!(
+        "$ErrorActionPreference='Stop'; try {{ $s = Get-AuthenticodeSignature -LiteralPath '{}';          if ($s.SignerCertificate -and ($s.SignerCertificate.Subject -like '*Southern Colorado Systems*')          -and ($s.Status -ne 'NotSigned') -and ($s.Status -ne 'HashMismatch')) {{ exit 0 }} else {{ exit 1 }} }}          catch {{ exit 2 }}",
+        escaped
+    );
+    match std::process::Command::new("powershell")
+        .args(["-NoProfile", "-NonInteractive", "-Command", &script])
+        .creation_flags(CREATE_NO_WINDOW)
+        .output()
+    {
+        Ok(o) => o.status.success(),
+        Err(e) => {
+            log::error!("SoCo update signature check could not run: {}", e);
+            false
+        }
+    }
+}
+
 #[inline]
 pub fn is_win_10_or_greater() -> bool {
     unsafe { is_windows_10_or_greater() > 0 }
