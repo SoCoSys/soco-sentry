@@ -1,9 +1,14 @@
 # Security Policy
 
-## Reporting a Vulnerability
+SoCo Systems Sentry is maintained by Southern Colorado Systems, LLC for its own
+authorized use.
 
-We value security for the project very highly. We encourage all users to report any vulnerabilities they discover to us.
-If you find a security vulnerability in the RustDesk project, please report it responsibly by sending an email to info@rustdesk.com.
+## Reporting a vulnerability
 
-At this juncture, we don't have a bug bounty program. We are a small team trying to solve a big problem. We urge you to report any vulnerabilities responsibly
-so that we can continue building a secure application for the entire community.
+Please report suspected security issues **privately** — do not open a public
+issue. Email **support@socosystems.net** with "Security" in the subject line and
+enough detail to reproduce the issue. We will acknowledge your report and respond
+as quickly as we are able.
+
+Vulnerabilities in the upstream project should be reported there:
+https://github.com/rustdesk/rustdesk/security
