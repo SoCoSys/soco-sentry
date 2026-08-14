@@ -2840,6 +2840,9 @@ pub fn main_get_common(key: String) -> String {
         return crate::platform::linux::has_gnome_shortcuts_inhibitor_permission().to_string();
         #[cfg(not(target_os = "linux"))]
         return false.to_string();
+    } else if key == "soco-audit-log" {
+        // SoCo Sentry: on-device connection log (Audit Log tab).
+        return crate::soco_audit::read_json();
     } else if key == "permanent-password-set" {
         return ui_interface::is_permanent_password_set().to_string();
     } else if key == "local-permanent-password-set" {
@@ -2900,6 +2903,11 @@ pub fn main_get_common_sync(key: String) -> SyncReturn<String> {
 }
 
 pub fn main_set_common(_key: String, _value: String) {
+    // SoCo Sentry: clear the on-device connection log (Audit Log tab).
+    if _key == "soco-audit-clear" {
+        crate::soco_audit::clear();
+        return;
+    }
     #[cfg(target_os = "windows")]
     if _key == "install-printer" && crate::platform::is_win_10_or_greater() {
         std::thread::spawn(move || {

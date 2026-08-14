@@ -58,6 +58,7 @@ mod whiteboard;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod updater;
+pub mod soco_audit;
 
 mod ui_cm_interface;
 mod ui_interface;

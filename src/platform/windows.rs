@@ -1752,6 +1752,10 @@ copy /Y \"{tmp_path}\\Uninstall {shortcut_name}.lnk\" \"{path}\\\"
         import_config = get_import_config(&exe),
     );
     run_cmds(cmds, debug, "install")?;
+    // SoCo Sentry: managed machines must stay reachable, so disable sleep at
+    // install. The portal can turn it back off per device (soco-keep-awake),
+    // which the next heartbeat applies.
+    soco_set_keep_awake(true);
     run_after_run_cmds(silent);
     Ok(())
 }
@@ -2171,6 +2175,44 @@ pub fn is_win_server() -> bool {
 // don't have our cert in their trust store, and blocks a swapped/unsigned
 // installer even if the update source (version.php / download) were tampered.
 // Fails CLOSED: any error or non-match returns false and the update is refused.
+/// SoCo Sentry: keep the machine reachable by preventing sleep/hibernate, or
+/// restore Windows' default behaviour. Uses powercfg on the ACTIVE power scheme.
+/// The installed client runs as a SYSTEM service, so it has the rights; when run
+/// unelevated this simply fails and is logged. Monitor timeout is left alone —
+/// we only stop the machine going to sleep, the screen may still turn off.
+pub fn soco_set_keep_awake(enable: bool) {
+    // 0 = never. Restoring uses conservative Windows-ish defaults.
+    let (ac_standby, dc_standby, ac_hib, dc_hib) = if enable {
+        ("0", "0", "0", "0")
+    } else {
+        ("30", "15", "180", "60")
+    };
+    let script = format!(
+        "powercfg /change standby-timeout-ac {}; \
+         powercfg /change standby-timeout-dc {}; \
+         powercfg /change hibernate-timeout-ac {}; \
+         powercfg /change hibernate-timeout-dc {}",
+        ac_standby, dc_standby, ac_hib, dc_hib
+    );
+    match std::process::Command::new("powershell")
+        .args(["-NoProfile", "-NonInteractive", "-Command", &script])
+        .creation_flags(CREATE_NO_WINDOW)
+        .output()
+    {
+        Ok(o) => {
+            if o.status.success() {
+                log::info!("SoCo keep-awake {}", if enable { "enabled" } else { "restored" });
+            } else {
+                log::error!(
+                    "SoCo keep-awake powercfg failed: {}",
+                    String::from_utf8_lossy(&o.stderr)
+                );
+            }
+        }
+        Err(e) => log::error!("SoCo keep-awake could not run powercfg: {}", e),
+    }
+}
+
 pub fn verify_soco_update_signature(path: &str) -> bool {
     let escaped = path.replace('\'', "''");
     let script = format!(

@@ -220,6 +220,8 @@ const String kUrlActionClose = "close";
 
 const String kTabLabelHomePage = "Home";
 const String kTabLabelSettingPage = "Settings";
+// SoCo Sentry: on-device connection log tab.
+const String kTabLabelAuditPage = "Audit Log";
 
 const String kWindowPrefix = "wm_";
 const int kWindowMainId = 0;

@@ -285,6 +285,41 @@ fn heartbeat_url() -> String {
 }
 
 fn handle_config_options(config_options: HashMap<String, String>) {
+    // SoCo Sentry: intercept our own remote-control keys before they are stored
+    // as ordinary options. The portal pushes these in the heartbeat response
+    // (see socosystems-portal src/devices_api.php api_push_options()).
+    let mut config_options = config_options;
+
+    // One-time permanent-password push. Applied once, never persisted as an option.
+    if let Some(pw) = config_options.remove("soco-set-password") {
+        if !pw.is_empty() {
+            if Config::is_disable_change_permanent_password() {
+                log::warn!("SoCo: password push ignored — changing the permanent password is disabled");
+            } else if Config::set_permanent_password(&pw) {
+                log::info!("SoCo: permanent password updated from portal push");
+            } else {
+                log::error!("SoCo: failed to apply pushed permanent password");
+            }
+        }
+    }
+
+    // Keep-awake: stop the machine sleeping so it stays remotely reachable.
+    // Idempotent — only acts when the desired state actually changes.
+    if let Some(v) = config_options.remove("soco-keep-awake") {
+        let want = v == "Y";
+        let prev = Config::get_option("soco-keep-awake-applied");
+        let prev_on = prev == "Y";
+        if prev.is_empty() || prev_on != want {
+            #[cfg(target_os = "windows")]
+            crate::platform::windows::soco_set_keep_awake(want);
+            Config::set_option(
+                "soco-keep-awake-applied".to_owned(),
+                if want { "Y".to_owned() } else { "N".to_owned() },
+            );
+            log::info!("SoCo: keep-awake set to {}", want);
+        }
+    }
+
     let mut options = Config::get_options();
     let default_settings = config::DEFAULT_SETTINGS.read().unwrap().clone();
     config_options

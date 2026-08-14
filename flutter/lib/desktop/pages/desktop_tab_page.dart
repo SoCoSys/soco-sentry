@@ -3,6 +3,7 @@ import 'package:flutter_hbb/common.dart';
 import 'package:flutter_hbb/consts.dart';
 import 'package:flutter_hbb/desktop/pages/desktop_home_page.dart';
 import 'package:flutter_hbb/desktop/pages/desktop_setting_page.dart';
+import 'package:flutter_hbb/desktop/pages/soco_audit_page.dart';
 import 'package:flutter_hbb/desktop/widgets/tabbar_widget.dart';
 import 'package:flutter_hbb/models/platform_model.dart';
 import 'package:flutter_hbb/models/state_model.dart';
@@ -64,6 +65,16 @@ class _DesktopTabPageState extends State<DesktopTabPage> {
         page: DesktopSettingPage(
           key: const ValueKey(kTabLabelSettingPage),
           initialTabkey: SettingsTabKey.general,
+        )));
+    // SoCo Sentry: on-device connection log, always available.
+    tabController.add(TabInfo(
+        key: kTabLabelAuditPage,
+        label: kTabLabelAuditPage,
+        selectedIcon: Icons.receipt_long,
+        unselectedIcon: Icons.receipt_long_outlined,
+        closable: false,
+        page: const SocoAuditPage(
+          key: ValueKey(kTabLabelAuditPage),
         )));
     tabController.jumpTo(0, callOnSelected: false);
     if (bind.isIncomingOnly()) {

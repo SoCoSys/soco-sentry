@@ -1141,6 +1141,8 @@ impl Connection {
             raii::AuthedConnID::check_remove_session(conn.inner.id(), conn.session_key());
         }
 
+        // SoCo Sentry: close the on-device Audit Log entry.
+        crate::soco_audit::conn_closed(conn.inner.id());
         conn.post_conn_audit(json!({
             "action": "close",
         }));
@@ -1390,6 +1392,8 @@ impl Connection {
         msg_out.set_hash(self.hash.clone());
         self.send(msg_out).await;
         self.get_api_server();
+        // SoCo Sentry: mirror the connection into the on-device Audit Log.
+        crate::soco_audit::conn_opened(self.inner.id(), &self.ip);
         let mut audit = json!({
             "ip": addr.ip(),
             "action": "new",
@@ -1679,6 +1683,13 @@ impl Connection {
             .get(&self.session_key())
             .map(|s| s.last_recv_time.clone());
         self.normalize_conn_audit_auth_fields();
+        // SoCo Sentry: record who authenticated, for the on-device Audit Log.
+        crate::soco_audit::conn_authed(
+            self.inner.id(),
+            &self.lr.my_id,
+            &self.lr.my_name,
+            &format!("{:?}", conn_type),
+        );
         let mut audit = json!({"peer": ((&self.lr.my_id, &self.lr.my_name)), "type": conn_type});
         if self.conn_audit_primary_auth != ConnAuditPrimaryAuth::None {
             audit["primary_auth"] = json!(self.conn_audit_primary_auth.as_i64());
